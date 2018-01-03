@@ -17,14 +17,29 @@ class ParserPipelinesEventDriven extends EventEmitter
     protected $parsers = array();
     
     protected $parser_pipelines = array();
+	
+	protected $event_callback = null;
     
-    protected function __construct()
+    protected function __construct($event_callback = null)
     {
+		$this->setEventCallback($event_callback);
     }
     
-    static public function getInstance()
+	public function setEventCallback($event_callback = null)
     {
-	return new self;
+		if (is_callable($event_callback))
+		{
+			$this->event_callback = $event_callback;
+		} else {
+			$this->event_callback = null;
+		}
+		
+		return $this;
+    }
+	
+    static public function getInstance($event_callback = null)
+    {
+	return new self($event_callback);
     }
     
     public function setParser($parser_name, ParserInterfaceEventDriven $parser)
@@ -73,9 +88,10 @@ class ParserPipelinesEventDriven extends EventEmitter
 	    }, $this->parser_pipelines));
 	    
 	$that = $this;
-	array_walk($parser_results, function (array $nodes, $pipeline_name) use ($that)
+	$callback = is_callable($this->event_callback) ? $this->$event_callback : array($this, 'emit');
+	array_walk($parser_results, function (array $nodes, $pipeline_name) use ($callback)
 	{
-	    $that->emit($pipeline_name, array($nodes));
+	    $callback($pipeline_name, $nodes);
 	});
 	
 	return $this;
