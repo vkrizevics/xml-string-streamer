@@ -18,7 +18,7 @@ class ParserPipelinesEventDriven extends EventEmitter
     
     protected $parser_pipelines = array();
     
-    protected function __construct()
+    protected function __construct()	
     {
     }
 	
@@ -57,13 +57,19 @@ class ParserPipelinesEventDriven extends EventEmitter
 	    array_filter(array_map(function ($chain) use ($parsers, $chunk) {
 		$nodes = array();
 		if (count($chain) == 1) {
-		    while($nodes[] = $parsers[current((array)$chain)]->getNodeFrom($chunk));
+		    while($node = $parsers[current((array)$chain)]->getNodeFrom($chunk))
+		    {
+		    	$nodes[] = $node;
+		    };
 		    $res = $nodes;
 		} else {
 		    $res = array_reduce($chain, function($nodes_carry, $parser_index) use ($parsers) {
 			$nodes[] = array();
 			array_walk($nodes_carry, function($chunk_transformed) use(&$nodes, $parsers, $parser_index){
-			    while($nodes[] = $parsers[$parser_index]->getNodeFrom($chunk_transformed ? $chunk_transformed : ''));
+			    while($node = $parsers[$parser_index]->getNodeFrom($chunk_transformed ? $chunk_transformed : ''))
+			    {
+			    	$nodes[] = $node;
+			    };
 			});
 
 			return array_filter($nodes);
